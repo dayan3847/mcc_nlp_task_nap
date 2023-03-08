@@ -1,5 +1,5 @@
 from typing import List
-
+import scipy as sp
 from matplotlib import pyplot as plt
 import networkx as nx
 
@@ -32,7 +32,8 @@ def reduce_graph(graph: nx.Graph, subset: list) -> nx.Graph:
 
 def bt_centrality(graph: nx.Graph, subset: List[str]) -> dict:
     sub_graph = reduce_graph(graph, subset)
-    result = nx.betweenness_centrality(sub_graph, normalized=True, weight="weight")
+    # result = nx.betweenness_centrality(sub_graph, normalized=True, weight="weight")
+    result = nx.communicability_betweenness_centrality(sub_graph)
     for w in subset:
         if w in result:
             result.pop(w)
@@ -40,7 +41,22 @@ def bt_centrality(graph: nx.Graph, subset: List[str]) -> dict:
     return result
 
 
+def precision(word_input: str, btc, k: int = 1) -> int:
+    count = min(k, len(btc))
+    for i in range(count):
+        b = list(btc.keys())[i]
+        if b == word_input:
+            return 1
+    return 0
+
+
 def build_definitions_graph(graphs: Graphs, definitions: List[Definition]):
+    total: int = 0
+    p = {
+        'frequency': [0, 0, 0],
+        'time': [0, 0, 0],
+        'association': [0, 0, 0],
+    }
     for definition in definitions:
         print('\033[32m' + f'Input: {definition.word_input}' + '\033[0m')
         for word_output in definition.word_outputs:
@@ -48,18 +64,32 @@ def build_definitions_graph(graphs: Graphs, definitions: List[Definition]):
             sub_graph = reduce_graph(graphs.graph_frequency, word_output)
             print('Frequency ' + str(sub_graph))
             btc = bt_centrality(sub_graph, word_output)
+            p['frequency'][0] += precision(definition.word_input, btc, 1)
+            p['frequency'][1] += precision(definition.word_input, btc, 3)
+            p['frequency'][2] += precision(definition.word_input, btc, 5)
             print('\033[35m' + str(btc) + '\033[0m')
-            draw(sub_graph)
-            sub_graph = reduce_graph(graphs.graph_time, word_output)
-            print('Time ' + str(sub_graph))
-            btc = bt_centrality(sub_graph, word_output)
-            print('\033[35m' + str(btc) + '\033[0m')
-            draw(sub_graph)
-            sub_graph = reduce_graph(graphs.graph_association, word_output)
-            print('Association ' + str(sub_graph))
-            btc = bt_centrality(sub_graph, word_output)
-            print('\033[35m' + str(btc) + '\033[0m')
-            draw(sub_graph)
+            # draw(sub_graph)
+            # sub_graph = reduce_graph(graphs.graph_time, word_output)
+            # print('Time ' + str(sub_graph))
+            # btc = bt_centrality(sub_graph, word_output)
+            # p['time'][0] += precision(definition.word_input, btc, 1)
+            # p['time'][1] += precision(definition.word_input, btc, 3)
+            # p['time'][2] += precision(definition.word_input, btc, 5)
+            # print('\033[35m' + str(btc) + '\033[0m')
+            # draw(sub_graph)
+            # sub_graph = reduce_graph(graphs.graph_association, word_output)
+            # print('Association ' + str(sub_graph))
+            # btc = bt_centrality(sub_graph, word_output)
+            # p['association'][0] += precision(definition.word_input, btc, 1)
+            # p['association'][1] += precision(definition.word_input, btc, 3)
+            # p['association'][2] += precision(definition.word_input, btc, 5)
+            # print('\033[35m' + str(btc) + '\033[0m')
+            # draw(sub_graph)
+            total += 1
+    for k in p.keys():
+        for i in range(3):
+            p[k][i] /= total
+    print(p)
 
 
 if __name__ == '__main__':

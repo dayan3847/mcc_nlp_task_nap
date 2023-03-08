@@ -27,25 +27,26 @@ class DataSet:
         for row in range(count_rows):
             cell = sheet.cell(row, 0)
             cell_value: str = str(cell.value).strip()
+            cell_value_lem: str = str(sheet.cell(row, 4).value)
             if '======' == cell_value:
                 word_input = ''
                 continue
             elif cell_value in self.ignore_words:
                 continue
             elif '' == word_input:
-                word_input = cell_value
+                word_input = cell_value_lem
             else:
                 # frequency
                 frequency: float = float(sheet.cell(row, 1).value)
                 frequency_weight: float = 1 / frequency
-                self.graphs.graph_frequency.add_edge(word_input, cell_value, weight=frequency_weight)
+                self.graphs.graph_frequency.add_edge(word_input, cell_value_lem, weight=frequency_weight)
                 # time
                 time: float = float(sheet.cell(row, 2).value)
-                self.graphs.graph_time.add_edge(word_input, cell_value, weight=time)
+                self.graphs.graph_time.add_edge(word_input, cell_value_lem, weight=time)
                 # association
                 association: float = float(sheet.cell(row, 3).value)
                 association_weight: float = 100 - association
-                self.graphs.graph_association.add_edge(word_input, cell_value, weight=association_weight)
+                self.graphs.graph_association.add_edge(word_input, cell_value_lem, weight=association_weight)
         return self.graphs
 
     def clean_lematize(self, sentence: str):
