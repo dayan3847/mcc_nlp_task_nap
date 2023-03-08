@@ -5,6 +5,7 @@ import networkx as nx
 
 from DataSet import DataSet
 from Definition import Definition
+from Graphs import Graphs
 
 
 def draw(graph: nx.Graph):
@@ -18,16 +19,6 @@ def draw(graph: nx.Graph):
     plt.show()
 
 
-def bt_centrality(graph: nx.Graph, subset: List[str]) -> dict:
-    sub_graph = reduce_graph(graph, subset)
-    result = nx.betweenness_centrality(sub_graph, normalized=True, weight="weight")
-    for w in subset:
-        if w in result:
-            result.pop(w)
-    result = dict(sorted(result.items(), key=lambda item: item[1], reverse=True))
-    return result
-
-
 def reduce_graph(graph: nx.Graph, subset: list) -> nx.Graph:
     sub_graph = nx.Graph()
     for node in subset:
@@ -39,7 +30,17 @@ def reduce_graph(graph: nx.Graph, subset: list) -> nx.Graph:
     return sub_graph
 
 
-def build_definitions_graph(definitions: List[Definition]):
+def bt_centrality(graph: nx.Graph, subset: List[str]) -> dict:
+    sub_graph = reduce_graph(graph, subset)
+    result = nx.betweenness_centrality(sub_graph, normalized=True, weight="weight")
+    for w in subset:
+        if w in result:
+            result.pop(w)
+    result = dict(sorted(result.items(), key=lambda item: item[1], reverse=True))
+    return result
+
+
+def build_definitions_graph(graphs: Graphs, definitions: List[Definition]):
     for definition in definitions:
         print('\033[32m' + f'Input: {definition.word_input}' + '\033[0m')
         for word_output in definition.word_outputs:
@@ -64,12 +65,12 @@ def build_definitions_graph(definitions: List[Definition]):
 if __name__ == '__main__':
     data_set = DataSet()
     # Import Graphs
-    graphs = data_set.import_graphs()
-    print('Frequency ' + str(graphs.graph_frequency))
-    print('Time ' + str(graphs.graph_time))
-    print('Association ' + str(graphs.graph_association))
+    the_graphs = data_set.import_graphs()
+    print('Frequency ' + str(the_graphs.graph_frequency))
+    print('Time ' + str(the_graphs.graph_time))
+    print('Association ' + str(the_graphs.graph_association))
     # Import Definitions
     the_definitions = data_set.import_definitions()
     print('Definitions ' + str(the_definitions))
     # Build Graphs
-    build_definitions_graph(the_definitions)
+    build_definitions_graph(the_graphs, the_definitions)
